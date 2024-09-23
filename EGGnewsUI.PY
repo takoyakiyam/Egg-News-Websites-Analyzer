@@ -1,6 +1,7 @@
 from PyQt5.QtWidgets import (
     QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, 
-    QTextEdit, QCheckBox, QDialog, QDialogButtonBox, QVBoxLayout, QGroupBox
+    QTextEdit, QCheckBox, QDialog, QDialogButtonBox, QVBoxLayout, QGroupBox,
+    QScrollArea, QComboBox
 )
 import sys
 import re
@@ -188,7 +189,63 @@ def scrape_websites(websites_to_scrape):
     
     return all_articles
 
+# Class for showing a list of articles in a scrollable dialog
+class ArticleDisplayDialog(QDialog):
+    def __init__(self, articles, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Articles")
+        self.setMinimumSize(600, 400)
 
+        layout = QVBoxLayout()
+        
+        # Scroll area for articles
+        scroll_area = QScrollArea()
+        scroll_area.setWidgetResizable(True)
+
+        # Widget for scroll area
+        scroll_widget = QWidget()
+        scroll_layout = QVBoxLayout(scroll_widget)
+        
+        # Adding articles as QLabel
+        for article in articles:
+            headline_label = QLabel(f"• {article['headline']}")
+            headline_label.setWordWrap(True)
+            scroll_layout.addWidget(headline_label)
+
+        scroll_area.setWidget(scroll_widget)
+        layout.addWidget(scroll_area)
+
+        # Close button
+        close_button = QDialogButtonBox(QDialogButtonBox.Close)
+        close_button.rejected.connect(self.reject)
+        layout.addWidget(close_button)
+
+        self.setLayout(layout)
+
+# Class for selecting a website and displaying its articles
+class WebsiteArticleDialog(QDialog):
+    def __init__(self, websites, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Select a Website")
+        
+        layout = QVBoxLayout()
+        
+        # ComboBox for website selection
+        self.website_combo = QComboBox()
+        self.website_combo.addItems(websites)
+        layout.addWidget(self.website_combo)
+        
+        # Button box for OK and Cancel
+        button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        button_box.accepted.connect(self.accept)
+        button_box.rejected.connect(self.reject)
+        layout.addWidget(button_box)
+        
+        self.setLayout(layout)
+    
+    def get_selected_website(self):
+        return self.website_combo.currentText()
+    
 class WebsiteSelectionDialog(QDialog):
     def __init__(self, websites, parent=None):
         super().__init__(parent)
@@ -240,6 +297,10 @@ class MainWindow(QMainWindow):
         self.scrape_button = QPushButton("Scrape Websites")
         self.scrape_button.clicked.connect(self.show_website_selection)
         self.button_layout.addWidget(self.scrape_button)
+        
+        self.articles_button = QPushButton("Display articles")
+        self.articles_button.clicked.connect(self.show_my_articles)
+        self.button_layout.addWidget(self.articles_button)
 
         self.analyze_sentiment_button = QPushButton("Analyze Sentiment")
         self.analyze_sentiment_button.clicked.connect(self.analyze_articles_sentiment)
@@ -310,6 +371,23 @@ class MainWindow(QMainWindow):
 
         self.results_display.append("Generating Word Cloud...")
         generate_wordcloud_from_all_articles(self.articles)
+        
+    def show_my_articles(self):
+        # Show dialog to select website
+        dialog = WebsiteArticleDialog(websites)
+        if dialog.exec_() == QDialog.Accepted:
+            selected_website = dialog.get_selected_website()
+            self.results_display.append(f"Fetching articles from: {selected_website}")
+            
+            # Scrape articles from the selected website
+            articles = scrape_websites([selected_website])
+            
+            if articles:
+                # Display articles in a new dialog
+                article_dialog = ArticleDisplayDialog(articles)
+                article_dialog.exec_()
+            else:
+                self.results_display.append("No articles found.")
 
 # 2. Text Processing Using NLTK
 def process_text(text):
