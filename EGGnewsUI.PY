@@ -407,20 +407,20 @@ class MainWindow(QMainWindow):
 
     def extract_keywords_from_articles(self):
         if not self.articles:
-            self.results_display.append("\nNo articles to analyze. Please scrape some websites first.")
+            self.results_display.append("No articles to analyze. Please scrape some websites first.")
             return
 
         keywords = get_keywords_from_all_articles(self.articles)
-        self.results_display.append("<b>\n\nKeywords extracted from all articles:</b>")
+        self.results_display.append("<b>Keywords extracted from all articles:</b>")
         for keyword, frequency in keywords:
             self.results_display.append(f"{keyword}: {frequency}")
 
     def generate_wordcloud(self):
         if not self.articles:
-            self.results_display.append("\nNo articles to analyze. Please scrape some websites first.")
+            self.results_display.append("No articles to analyze. Please scrape some websites first.")
             return
 
-        self.results_display.append("Generating Word Cloud...")
+        self.results_display.append("<b>Generating Word Cloud...</b>")
         generate_wordcloud_from_all_articles(self.articles)
         
     def show_my_articles(self):
