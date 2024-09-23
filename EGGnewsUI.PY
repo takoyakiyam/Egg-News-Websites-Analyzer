@@ -1,9 +1,11 @@
+from PyQt5.QtWidgets import (
+    QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, 
+    QTextEdit, QCheckBox, QDialog, QDialogButtonBox, QVBoxLayout, QGroupBox
+)
 import sys
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton, QTextEdit, QLabel
-from PyQt5.QtCore import Qt
+import re
 import requests
 from bs4 import BeautifulSoup
-import re
 import nltk
 from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
@@ -17,7 +19,6 @@ nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('vader_lexicon')
 
-# Websites to scrape
 websites = [
     "https://www.inquirer.net",
     "https://www.bbc.com/news",
@@ -26,9 +27,6 @@ websites = [
     "https://www.rappler.com"
 ]
 
-# Define scraping functions (same as provided above) ...
-
-# Text Processing, Sentiment Analysis, and Word Cloud generation functions (same as provided above) ...
 # 1. Web Scraping Functionality
 def scrape_inquirer():
     url = "https://newsinfo.inquirer.net"
@@ -191,6 +189,128 @@ def scrape_websites(websites_to_scrape):
     return all_articles
 
 
+class WebsiteSelectionDialog(QDialog):
+    def __init__(self, websites, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Select Websites")
+        self.websites = websites
+        self.selected_websites = []
+
+        layout = QVBoxLayout()
+
+        self.checkboxes = []
+        for website in websites:
+            checkbox = QCheckBox(website)
+            self.checkboxes.append(checkbox)
+            layout.addWidget(checkbox)
+
+        self.button_box = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+        layout.addWidget(self.button_box)
+
+        self.setLayout(layout)
+
+    def accept(self):
+        self.selected_websites = [
+            cb.text() for cb in self.checkboxes if cb.isChecked()
+        ]
+        super().accept()
+
+    def reject(self):
+        super().reject()
+
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("News Analyzer")
+
+        self.central_widget = QWidget()
+        self.setCentralWidget(self.central_widget)
+
+        self.layout = QVBoxLayout(self.central_widget)
+
+        self.info_label = QLabel("Select an action below:")
+        self.layout.addWidget(self.info_label)
+
+        # Group buttons in a single area
+        self.button_group = QGroupBox()
+        self.button_layout = QVBoxLayout()
+
+        self.scrape_button = QPushButton("Scrape Websites")
+        self.scrape_button.clicked.connect(self.show_website_selection)
+        self.button_layout.addWidget(self.scrape_button)
+
+        self.analyze_sentiment_button = QPushButton("Analyze Sentiment")
+        self.analyze_sentiment_button.clicked.connect(self.analyze_articles_sentiment)
+        self.button_layout.addWidget(self.analyze_sentiment_button)
+
+        self.extract_keywords_button = QPushButton("Extract Keywords")
+        self.extract_keywords_button.clicked.connect(self.extract_keywords_from_articles)
+        self.button_layout.addWidget(self.extract_keywords_button)
+
+        self.generate_wordcloud_button = QPushButton("Generate Word Cloud")
+        self.generate_wordcloud_button.clicked.connect(self.generate_wordcloud)
+        self.button_layout.addWidget(self.generate_wordcloud_button)
+
+        # Set layout to the button group
+        self.button_group.setLayout(self.button_layout)
+        self.layout.addWidget(self.button_group)
+
+        # Text display area for showing results
+        self.results_display = QTextEdit()
+        self.layout.addWidget(self.results_display)
+
+        # Initialize articles list
+        self.articles = []
+
+    def show_website_selection(self):
+        dialog = WebsiteSelectionDialog(websites)
+        if dialog.exec_() == QDialog.Accepted:
+            selected_websites = dialog.selected_websites
+            if selected_websites:
+                self.scrape_selected_websites(selected_websites)
+            else:
+                self.results_display.append("No websites selected.")
+
+    def scrape_selected_websites(self, selected_websites):
+        self.articles = scrape_websites(selected_websites)
+        self.results_display.append(f"Scraped {len(self.articles)} articles.")
+        if self.articles:
+            self.results_display.append("Articles scraped successfully.")
+        else:
+            self.results_display.append("No articles were scraped.")
+
+    def analyze_articles_sentiment(self):
+        if not self.articles:
+            self.results_display.append("No articles to analyze. Please scrape some websites first.")
+            return
+
+        sentiment_summary = analyze_sentiment_overall(self.articles)
+        self.results_display.append("Sentiment Analysis:")
+        self.results_display.append(f"Positive: {sentiment_summary['positive']}")
+        self.results_display.append(f"Negative: {sentiment_summary['negative']}")
+        self.results_display.append(f"Neutral: {sentiment_summary['neutral']}")
+        self.results_display.append(f"Overall Sentiment: {sentiment_summary['overall_sentiment']}")
+
+    def extract_keywords_from_articles(self):
+        if not self.articles:
+            self.results_display.append("No articles to analyze. Please scrape some websites first.")
+            return
+
+        keywords = get_keywords_from_all_articles(self.articles)
+        self.results_display.append("Keywords extracted from all articles:")
+        for keyword, frequency in keywords:
+            self.results_display.append(f"{keyword}: {frequency}")
+
+    def generate_wordcloud(self):
+        if not self.articles:
+            self.results_display.append("No articles to analyze. Please scrape some websites first.")
+            return
+
+        self.results_display.append("Generating Word Cloud...")
+        generate_wordcloud_from_all_articles(self.articles)
+
 # 2. Text Processing Using NLTK
 def process_text(text):
     """
@@ -307,93 +427,9 @@ def generate_wordcloud_from_all_articles(articles):
     plt.imshow(wordcloud, interpolation='bilinear')
     plt.axis('off')
     plt.show()
-    
-class NewsAnalyzerApp(QWidget):
-    def __init__(self):
-        super().__init__()
-        self.all_articles = []  # Store scraped articles here
 
-        # Set up the UI
-        self.setWindowTitle('News Analyzer')
-        self.setGeometry(100, 100, 800, 600)
-        
-        self.layout = QVBoxLayout()
-        
-        # Scrape Button
-        self.scrape_button = QPushButton('Scrape Websites')
-        self.scrape_button.clicked.connect(self.scrape_websites)
-        self.layout.addWidget(self.scrape_button)
-        
-        # Display Area
-        self.display_area = QTextEdit()
-        self.display_area.setReadOnly(True)
-        self.layout.addWidget(self.display_area)
-        
-        # Keyword Extraction Button
-        self.keyword_button = QPushButton('Extract Keywords and Show Bar Chart')
-        self.keyword_button.clicked.connect(self.display_keywords)
-        self.layout.addWidget(self.keyword_button)
-        
-        # Sentiment Analysis Button
-        self.sentiment_button = QPushButton('Overall Sentiment Analysis')
-        self.sentiment_button.clicked.connect(self.analyze_sentiment)
-        self.layout.addWidget(self.sentiment_button)
-        
-        # Word Cloud Button
-        self.wordcloud_button = QPushButton('Generate Word Cloud')
-        self.wordcloud_button.clicked.connect(self.display_wordcloud)
-        self.layout.addWidget(self.wordcloud_button)
-        
-        # Set the main layout
-        self.setLayout(self.layout)
-    
-    def scrape_websites(self):
-        """
-        Scrape selected websites and display the number of articles scraped.
-        """
-        self.display_area.clear()
-        self.all_articles = scrape_websites(websites)
-        self.display_area.append(f"Scraped {len(self.all_articles)} articles.")
-    
-    def display_keywords(self):
-        """
-        Extract keywords and display a bar chart.
-        """
-        if self.all_articles:
-            self.display_area.append("\nExtracting keywords and generating bar chart...")
-            keywords = get_keywords_from_all_articles(self.all_articles)
-            self.display_area.append(f"Top Keywords: {keywords}")
-        else:
-            self.display_area.append("No articles available for keyword extraction.")
-    
-    def analyze_sentiment(self):
-        """
-        Perform sentiment analysis on all articles and display the result.
-        """
-        if self.all_articles:
-            self.display_area.append("\nPerforming overall sentiment analysis...")
-            sentiment_summary = analyze_sentiment_overall(self.all_articles)
-            self.display_area.append(f"\nOverall Sentiment Analysis:\n")
-            self.display_area.append(f"Positive articles: {sentiment_summary['positive']}")
-            self.display_area.append(f"Negative articles: {sentiment_summary['negative']}")
-            self.display_area.append(f"Neutral articles: {sentiment_summary['neutral']}")
-            self.display_area.append(f"Overall Sentiment: {sentiment_summary['overall_sentiment']}")
-        else:
-            self.display_area.append("No articles available for sentiment analysis.")
-    
-    def display_wordcloud(self):
-        """
-        Generate and display a word cloud from all articles.
-        """
-        if self.all_articles:
-            self.display_area.append("\nGenerating word cloud...")
-            generate_wordcloud_from_all_articles(self.all_articles)
-        else:
-            self.display_area.append("No articles available for word cloud generation.")
-
-# Create and run the application
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    window = NewsAnalyzerApp()
+    window = MainWindow()
     window.show()
     sys.exit(app.exec_())
