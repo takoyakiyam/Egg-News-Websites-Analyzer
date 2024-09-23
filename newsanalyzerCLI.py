@@ -196,14 +196,36 @@ def process_text(text):
     
     return tokens
 
-def get_keywords(text):
+def get_keywords_from_all_articles(articles):
     """
-    Returns the most common keywords in the provided text.
+    Returns the most common keywords from all articles combined and displays a bar chart.
     """
-    tokens = process_text(text)
+    # Combine all headlines and summaries into a single text corpus
+    combined_text = ' '.join(
+        article['headline'] + ' ' + (article['summary'] or '') for article in articles
+    )
+    
+    # Tokenize and clean the combined text
+    tokens = process_text(combined_text)
     fdist = FreqDist(tokens)
     
-    return fdist.most_common(10)
+    # Get the most common 10 keywords
+    most_common_keywords = fdist.most_common(10)
+    
+    # Separate the keywords and their frequencies for plotting
+    keywords, frequencies = zip(*most_common_keywords)
+    
+    # Create a bar chart
+    plt.figure(figsize=(10, 6))
+    plt.bar(keywords, frequencies, color='skyblue')
+    plt.title('Top 10 Keywords from All Articles')
+    plt.xlabel('Keywords')
+    plt.ylabel('Frequency')
+    plt.xticks(rotation=45)
+    plt.tight_layout()
+    plt.show()
+    
+    return most_common_keywords
 
 # 3. Sentiment Analysis
 def analyze_sentiment(text):
@@ -339,15 +361,13 @@ def user_interface():
                         print("No articles available for sentiment analysis.")
                 
                 elif analysis_choice == '3':
-                    # Keyword extraction
-                    article_headlines = [article['headline'] for article in all_articles]
-                    print("Select an article to extract keywords from:")
-                    for i, headline in enumerate(article_headlines, 1):
-                        print(f"{i}. {headline}")
-                    article_idx = int(input("Enter article number: "))
-                    text = all_articles[article_idx - 1]['summary'] or all_articles[article_idx - 1]['headline']
-                    keywords = get_keywords(text)
-                    print(f"Top Keywords: {keywords}")
+                    # Keyword extraction from all articles
+                    if all_articles:
+                        print("\nExtracting keywords from all articles and generating bar chart...")
+                        keywords = get_keywords_from_all_articles(all_articles)
+                        print(f"Top Keywords from All Articles: {keywords}")
+                    else:
+                        print("No articles available for keyword extraction.")
                 
                 elif analysis_choice == '4':
                     # Word cloud generation from all articles
