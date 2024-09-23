@@ -21,7 +21,7 @@ nltk.download('stopwords')
 nltk.download('vader_lexicon')
 
 websites = [
-    "https://www.inquirer.net",
+    "https://www.foxnews.com/",
     "https://www.bbc.com/news",
     "https://www.philstar.com",
     "https://www.manilatimes.net",
@@ -29,31 +29,37 @@ websites = [
 ]
 
 # 1. Web Scraping Functionality
-def scrape_inquirer():
-    url = "https://newsinfo.inquirer.net"
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-    }
-    response = requests.get(url, headers=headers)
+def scrape_foxnews():
+    """Scrape and return the latest news headlines from Fox News."""
+    news_url = "https://www.foxnews.com/"
+    
+    response = requests.get(news_url)
     soup = BeautifulSoup(response.content, 'html.parser')
-    
+
+    # Extract headline text
+    headlines = soup.find_all('h3')  # Adjust this if necessary
+
+    # List to store articles with headline and link
     articles = []
-    
-    # Find all <h6> elements containing headlines
-    for item in soup.find_all('h6'):
-        headline_tag = item.find('a')
-        if headline_tag:
-            headline = headline_tag.text.strip()  # Extract text
-            link = headline_tag['href']  # Extract the link
-            
-            # Append the headline and link to the articles list
+    seen_headlines = set()  # Track seen headlines to avoid duplicates
+
+    for headline in headlines:
+        headline_text = headline.get_text(strip=True)
+        link = headline.find('a')['href'] if headline.find('a') else None  # Extract link if available
+
+        if is_valid_headline(headline_text) and headline_text not in seen_headlines:
+            seen_headlines.add(headline_text)
             articles.append({
-                'headline': headline,
-                'summary': "No Summary",  # Inquirer may not have summaries on the main page
+                'headline': headline_text,
+                'summary': None,  # Summary can be added later if needed
                 'link': link
             })
-    
+
     return articles
+
+def is_valid_headline(headline):
+    """Check if the headline is valid based on predefined criteria."""
+    return len(headline) > 10 and not headline.startswith(('Fox Nation', 'Features & Faces', 'Political cartoons of the day'))
 
 def scrape_bbc():
     """Scrape and return the latest news headlines from BBC News."""
@@ -91,16 +97,38 @@ def scrape_bbc():
     return articles
 
 def scrape_philstar():
-    url = "https://www.philstar.com"
+    """Scrape and return the latest news headlines from Philstar."""
+
+    # URL of the Philstar website
+    url = 'https://www.philstar.com/'
+
+    # Send a GET request to the website
     response = requests.get(url)
+
+    # Parse the HTML content using BeautifulSoup
     soup = BeautifulSoup(response.content, 'html.parser')
-    
+
+    # Find all the headlines inside h2 tags
+    headlines = soup.find_all('h2')
+
+    # Exclude the first and last h2 tags
+    filtered_headlines = headlines[1:-1]
+
+    # List to store articles with headline and link
     articles = []
-    for item in soup.select('h2.title a'):  # Philstar headlines
-        headline = item.text.strip()
-        summary = None
-        articles.append({'headline': headline, 'summary': summary})
-    
+
+    # Iterate through each filtered headline
+    for headline in filtered_headlines:
+        headline_text = headline.text.strip()
+        link = headline.find('a')['href'] if headline.find('a') else None  # Extract link if available
+
+        # Append the headline and link to the articles list
+        articles.append({
+            'headline': headline_text,
+            'summary': None,  # Summary can be added later if needed
+            'link': link
+        })
+
     return articles
 
 def scrape_manilaTimes():
@@ -176,8 +204,8 @@ def scrape_websites(websites_to_scrape):
     all_articles = []
     
     for website in websites_to_scrape:
-        if website == "https://www.inquirer.net":
-            all_articles.extend(scrape_inquirer())
+        if website == "https://www.foxnews.com/":
+            all_articles.extend(scrape_foxnews())
         elif website == "https://www.bbc.com/news":
             all_articles.extend(scrape_bbc())
         elif website == "https://www.philstar.com":
