@@ -399,25 +399,25 @@ class MainWindow(QMainWindow):
         sentiment_summary = analyze_sentiment_overall(self.articles)
         
         self.results_display.append("<b>Sentiment Analysis:</b>")
-        self.results_display.append(f"<span style='color: green; font-weight: bold;'>Positive: {sentiment_summary['positive']}</span>")
-        self.results_display.append(f"<span style='color: red; font-weight: bold;'>Negative: {sentiment_summary['negative']}</span>")
-        self.results_display.append(f"<span style='color: gray; font-weight: bold;'>Neutral: {sentiment_summary['neutral']}</span>")
+        self.results_display.append(f"<span style='color: green;'>Positive: {sentiment_summary['positive']}</span>")
+        self.results_display.append(f"<span style='color: red'>Negative: {sentiment_summary['negative']}</span>")
+        self.results_display.append(f"<span style='color: gray'>Neutral: {sentiment_summary['neutral']}</span>")
         self.results_display.append(f"<b>Overall Sentiment: {sentiment_summary['overall_sentiment']}</b>")
 
 
     def extract_keywords_from_articles(self):
         if not self.articles:
-            self.results_display.append("No articles to analyze. Please scrape some websites first.")
+            self.results_display.append("\nNo articles to analyze. Please scrape some websites first.")
             return
 
         keywords = get_keywords_from_all_articles(self.articles)
-        self.results_display.append("\n<b>Keywords extracted from all articles:</b>")
+        self.results_display.append("<b>\n\nKeywords extracted from all articles:</b>")
         for keyword, frequency in keywords:
             self.results_display.append(f"{keyword}: {frequency}")
 
     def generate_wordcloud(self):
         if not self.articles:
-            self.results_display.append("No articles to analyze. Please scrape some websites first.")
+            self.results_display.append("\nNo articles to analyze. Please scrape some websites first.")
             return
 
         self.results_display.append("Generating Word Cloud...")
