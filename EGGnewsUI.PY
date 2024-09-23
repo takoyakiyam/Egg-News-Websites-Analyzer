@@ -227,9 +227,10 @@ class ArticleDisplayDialog(QDialog):
         layout = QVBoxLayout()
 
         # Legend
-        legend_label = QLabel("Legend: <span style='color: green;'>Positive</span>, "
-                              "<span style='color: red;'>Negative</span>, "
-                              "<span style='color: gray;'>Neutral</span>")
+        legend_label = QLabel("Sentiment Color Coding: "
+                              "<span style='color: green; font-weight: bold;'>Positive - GREEN</span>, "
+                              "<span style='color: red; font-weight: bold;'>Negative - RED</span>, "
+                              "<span style='color: gray; font-weight: bold;'>Neutral - GREY</span>")
         legend_label.setOpenExternalLinks(True)
         legend_label.setWordWrap(True)
         layout.addWidget(legend_label)
