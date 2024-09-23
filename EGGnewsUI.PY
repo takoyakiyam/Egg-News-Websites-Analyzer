@@ -225,7 +225,15 @@ class ArticleDisplayDialog(QDialog):
         self.setMinimumSize(600, 400)
 
         layout = QVBoxLayout()
-        
+
+        # Legend
+        legend_label = QLabel("Legend: <span style='color: green;'>Positive</span>, "
+                              "<span style='color: red;'>Negative</span>, "
+                              "<span style='color: gray;'>Neutral</span>")
+        legend_label.setOpenExternalLinks(True)
+        legend_label.setWordWrap(True)
+        layout.addWidget(legend_label)
+
         # Scroll area for articles
         scroll_area = QScrollArea()
         scroll_area.setWidgetResizable(True)
@@ -233,11 +241,23 @@ class ArticleDisplayDialog(QDialog):
         # Widget for scroll area
         scroll_widget = QWidget()
         scroll_layout = QVBoxLayout(scroll_widget)
-        
-        # Adding articles as QLabel
+
+        # Adding articles as QLabel with sentiment-based colors
         for article in articles:
             headline_label = QLabel(f"• {article['headline']}")
             headline_label.setWordWrap(True)
+
+            # Perform sentiment analysis
+            sentiment_score = analyze_sentiment(article['headline'])
+
+            # Set font color based on sentiment
+            if sentiment_score['compound'] >= 0.05:
+                headline_label.setStyleSheet("color: green;")  # Positive
+            elif sentiment_score['compound'] <= -0.05:
+                headline_label.setStyleSheet("color: red;")    # Negative
+            else:
+                headline_label.setStyleSheet("color: gray;")   # Neutral
+
             scroll_layout.addWidget(headline_label)
 
         scroll_area.setWidget(scroll_widget)
