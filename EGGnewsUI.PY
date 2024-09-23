@@ -397,11 +397,13 @@ class MainWindow(QMainWindow):
             return
 
         sentiment_summary = analyze_sentiment_overall(self.articles)
-        self.results_display.append("\nSentiment Analysis:")
-        self.results_display.append(f"Positive: {sentiment_summary['positive']}")
-        self.results_display.append(f"Negative: {sentiment_summary['negative']}")
-        self.results_display.append(f"Neutral: {sentiment_summary['neutral']}")
-        self.results_display.append(f"\nOverall Sentiment: {sentiment_summary['overall_sentiment']}")
+        
+        self.results_display.append("<b>Sentiment Analysis:</b>")
+        self.results_display.append(f"<span style='color: green; font-weight: bold;'>Positive: {sentiment_summary['positive']}</span>")
+        self.results_display.append(f"<span style='color: red; font-weight: bold;'>Negative: {sentiment_summary['negative']}</span>")
+        self.results_display.append(f"<span style='color: gray; font-weight: bold;'>Neutral: {sentiment_summary['neutral']}</span>")
+        self.results_display.append(f"<b>Overall Sentiment: {sentiment_summary['overall_sentiment']}</b>")
+
 
     def extract_keywords_from_articles(self):
         if not self.articles:
@@ -409,7 +411,7 @@ class MainWindow(QMainWindow):
             return
 
         keywords = get_keywords_from_all_articles(self.articles)
-        self.results_display.append("Keywords extracted from all articles:")
+        self.results_display.append("\n<b>Keywords extracted from all articles:</b>")
         for keyword, frequency in keywords:
             self.results_display.append(f"{keyword}: {frequency}")
 
