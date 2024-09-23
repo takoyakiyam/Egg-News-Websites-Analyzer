@@ -16,11 +16,11 @@ nltk.download('vader_lexicon')
 
 # Websites to scrape
 websites = [
-    "https://www.inquirer.net",
-    "https://www.bbc.com/news",
-    "https://www.philstar.com",
-    "https://www.manilatimes.net",
-    "https://www.rappler.com"
+    "News ni Bry",
+    "BBC News",
+    "News ni Tan",
+    "Manila Times",
+    "Rappler"
 ]
 
 # 1. Web Scraping Functionality
