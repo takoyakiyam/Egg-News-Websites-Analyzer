@@ -402,7 +402,7 @@ class MainWindow(QMainWindow):
         self.results_display.append(f"<span style='color: green;'>Positive: {sentiment_summary['positive']}</span>")
         self.results_display.append(f"<span style='color: red'>Negative: {sentiment_summary['negative']}</span>")
         self.results_display.append(f"<span style='color: gray'>Neutral: {sentiment_summary['neutral']}</span>")
-        self.results_display.append(f"<b>Overall Sentiment: {sentiment_summary['overall_sentiment']}</b>")
+        self.results_display.append(f"Overall Sentiment: {sentiment_summary['overall_sentiment']}")
 
 
     def extract_keywords_from_articles(self):
