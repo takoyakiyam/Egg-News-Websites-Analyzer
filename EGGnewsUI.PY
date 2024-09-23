@@ -376,11 +376,11 @@ class MainWindow(QMainWindow):
             return
 
         sentiment_summary = analyze_sentiment_overall(self.articles)
-        self.results_display.append("Sentiment Analysis:")
+        self.results_display.append("\nSentiment Analysis:")
         self.results_display.append(f"Positive: {sentiment_summary['positive']}")
         self.results_display.append(f"Negative: {sentiment_summary['negative']}")
         self.results_display.append(f"Neutral: {sentiment_summary['neutral']}")
-        self.results_display.append(f"Overall Sentiment: {sentiment_summary['overall_sentiment']}")
+        self.results_display.append(f"\nOverall Sentiment: {sentiment_summary['overall_sentiment']}")
 
     def extract_keywords_from_articles(self):
         if not self.articles:
