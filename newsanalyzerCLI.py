@@ -215,6 +215,44 @@ def analyze_sentiment(text):
     
     return sentiment
 
+def analyze_sentiment_overall(articles):
+    """
+    Analyzes the sentiment of all articles and calculates an overall sentiment summary.
+    Returns: a dictionary with the count of positive, negative, neutral articles, and the overall sentiment.
+    """
+    sia = SentimentIntensityAnalyzer()
+    positive, negative, neutral = 0, 0, 0  # Counters for sentiment types
+    total_compound = 0  # To calculate average sentiment
+
+    for article in articles:
+        text = article['summary'] or article['headline']
+        sentiment = sia.polarity_scores(text)
+        total_compound += sentiment['compound']
+        
+        # Categorize the sentiment based on compound score
+        if sentiment['compound'] >= 0.05:
+            positive += 1
+        elif sentiment['compound'] <= -0.05:
+            negative += 1
+        else:
+            neutral += 1
+
+    # Determine the overall sentiment
+    average_compound = total_compound / len(articles)
+    if average_compound >= 0.05:
+        overall_sentiment = "Mostly Positive"
+    elif average_compound <= -0.05:
+        overall_sentiment = "Mostly Negative"
+    else:
+        overall_sentiment = "Neutral"
+    
+    return {
+        'positive': positive,
+        'negative': negative,
+        'neutral': neutral,
+        'overall_sentiment': overall_sentiment
+    }
+
 # 4. Word Cloud Visualization
 def generate_wordcloud_from_all_articles(articles):
     """
@@ -242,8 +280,6 @@ def generate_wordcloud_from_all_articles(articles):
     plt.axis('off')
     plt.show()
     
-# 5. CLI for User Interaction
-# 5. CLI for User Interaction
 def user_interface():
     """
     CLI for user interaction to choose actions like scraping websites or analyzing text.
@@ -270,15 +306,16 @@ def user_interface():
             
             while True:
                 print("\n--- Analyze Articles ---")
-                print("1. Perform sentiment analysis")
-                print("2. Extract keywords")
-                print("3. Generate word cloud from all articles")
-                print("4. Back to main menu")
+                print("1. Perform sentiment analysis on a specific article")
+                print("2. Perform overall sentiment analysis on all articles")
+                print("3. Extract keywords")
+                print("4. Generate word cloud from all articles")
+                print("5. Back to main menu")
                 
                 analysis_choice = input("Enter your choice: ")
                 
                 if analysis_choice == '1':
-                    # Sentiment analysis
+                    # Sentiment analysis for a specific article
                     article_headlines = [article['headline'] for article in all_articles]
                     print("Select an article to analyze:")
                     for i, headline in enumerate(article_headlines, 1):
@@ -289,6 +326,19 @@ def user_interface():
                     print(f"Sentiment Analysis: {sentiment}")
                 
                 elif analysis_choice == '2':
+                    # Overall sentiment analysis for all articles
+                    if all_articles:
+                        print("\nPerforming overall sentiment analysis on all articles...")
+                        sentiment_summary = analyze_sentiment_overall(all_articles)
+                        print(f"\nOverall Sentiment Analysis:\n")
+                        print(f"Positive articles: {sentiment_summary['positive']}")
+                        print(f"Negative articles: {sentiment_summary['negative']}")
+                        print(f"Neutral articles: {sentiment_summary['neutral']}")
+                        print(f"Overall Sentiment: {sentiment_summary['overall_sentiment']}")
+                    else:
+                        print("No articles available for sentiment analysis.")
+                
+                elif analysis_choice == '3':
                     # Keyword extraction
                     article_headlines = [article['headline'] for article in all_articles]
                     print("Select an article to extract keywords from:")
@@ -299,12 +349,12 @@ def user_interface():
                     keywords = get_keywords(text)
                     print(f"Top Keywords: {keywords}")
                 
-                elif analysis_choice == '3':
+                elif analysis_choice == '4':
                     # Word cloud generation from all articles
                     print("\nGenerating word cloud from all articles...")
                     generate_wordcloud_from_all_articles(all_articles)
                 
-                elif analysis_choice == '4':
+                elif analysis_choice == '5':
                     break
                 
                 else:
