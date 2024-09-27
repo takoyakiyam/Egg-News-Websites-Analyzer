@@ -1,21 +1,22 @@
-from PyQt5.QtWidgets import (
-    QApplication, QMainWindow, QWidget, QVBoxLayout, QPushButton, QLabel, 
-    QTextEdit, QCheckBox, QDialog, QDialogButtonBox, QVBoxLayout, QGroupBox,
-    QScrollArea, QComboBox
-)
-import sys
 import re
+import sys
+
+import matplotlib.pyplot as plt
+import nltk
 import requests
 from bs4 import BeautifulSoup
-import nltk
-from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 from nltk.probability import FreqDist
 from nltk.sentiment import SentimentIntensityAnalyzer
+from nltk.tokenize import word_tokenize
+from PyQt5.QtWidgets import (QApplication, QCheckBox, QComboBox, QDialog,
+                             QDialogButtonBox, QGroupBox, QLabel, QMainWindow,
+                             QPushButton, QScrollArea, QTextEdit, QVBoxLayout,
+                             QWidget)
 from wordcloud import WordCloud
-import matplotlib.pyplot as plt
 
 # Download NLTK resources
+nltk.download('punkt_tab')
 nltk.download('punkt')
 nltk.download('stopwords')
 nltk.download('vader_lexicon')
